@@ -36,13 +36,7 @@ namespace RoslynPad.Roslyn
 
         internal static readonly ImmutableArray<Type> DefaultCompositionTypes =
             DefaultCompositionAssemblies.SelectMany(t => t.DefinedTypes).Select(t => t.AsType())
-            .Concat(GetDiagnosticCompositionTypes())
             .ToImmutableArray();
-
-        private static IEnumerable<Type> GetDiagnosticCompositionTypes() => MetadataUtil.LoadTypesByNamespaces(
-            typeof(Microsoft.CodeAnalysis.Diagnostics.IDiagnosticService).Assembly,
-            "Microsoft.CodeAnalysis.Diagnostics",
-            "Microsoft.CodeAnalysis.CodeFixes");
 
         private readonly ConcurrentDictionary<DocumentId, RoslynWorkspace> _workspaces;
         private readonly ConcurrentDictionary<DocumentId, Action<DiagnosticsUpdatedArgs>> _diagnosticsUpdatedNotifiers;

@@ -2,13 +2,14 @@
   <PropertyGroup>
     <RepoRoot>$(MSBuildThisFileDirectory)</RepoRoot>
     <DefaultTargetFramework>net7.0</DefaultTargetFramework>
-    <LtsTargetFramework>net6.0</LtsTargetFramework>
-    <TargetFramework Condition=" $(MSBuildProjectName.Contains('Windows')) ">$(DefaultTargetFramework)-windows</TargetFramework>
+    <LtsTargetFramework>netstandard2.0</LtsTargetFramework>
+    <TargetFramework Condition=" $(MSBuildProjectName.Contains('Windows')) ">net48</TargetFramework>
     <TargetFramework Condition=" '$(TargetFramework)' == '' and '$(TargetFrameworks)' == '' ">$(DefaultTargetFramework)</TargetFramework>
     <Features>strict</Features>
     <Deterministic>True</Deterministic>
-    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <Version>4.4.0</Version>
+    <PackageVersion>4.4.0-icore</PackageVersion>
     <AvaloniaEditVersion>0.10.12.2</AvaloniaEditVersion>
     <LangVersion>latest</LangVersion>
     <Nullable>Enable</Nullable>

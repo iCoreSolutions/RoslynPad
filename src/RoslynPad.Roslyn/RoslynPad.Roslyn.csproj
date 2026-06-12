@@ -1,22 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>$(LtsTargetFramework)</TargetFramework>
-    <InternalsAssemblyNames>Microsoft.CodeAnalysis.CSharp;Microsoft.CodeAnalysis.Features;Microsoft.CodeAnalysis.CSharp.Features;Microsoft.CodeAnalysis.Scripting;Microsoft.CodeAnalysis.CSharp.Scripting;Microsoft.CodeAnalysis.Workspaces;Microsoft.CodeAnalysis.CSharp.Workspaces;Microsoft.CodeAnalysis.Extensions;Microsoft.CodeAnalysis.PooledObjects;Microsoft.CodeAnalysis.LanguageServer.Protocol</InternalsAssemblyNames>
+    <InternalsAssemblyNames>Microsoft.CodeAnalysis.CSharp;Microsoft.CodeAnalysis.Features;Microsoft.CodeAnalysis.CSharp.Features;Microsoft.CodeAnalysis.Scripting;Microsoft.CodeAnalysis.CSharp.Scripting;Microsoft.CodeAnalysis.Workspaces;Microsoft.CodeAnalysis.CSharp.Workspaces;Microsoft.CodeAnalysis.Extensions;Microsoft.CodeAnalysis.PooledObjects</InternalsAssemblyNames>
     <Description>Exposes many Roslyn editor services that are currently internal. The version of this package corresponds to the Roslyn packages.</Description>
     <IsPackable>true</IsPackable>
   </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="../RestoreHelper/RestoreHelper.csproj" Targets="GetLibReferences" PrivateAssets="All" />
-  </ItemGroup>
-  <Target Name="GetLibReferences" AfterTargets="ResolveFrameworkReferences">
-    <MSBuild Projects="@(ProjectReference)" Targets="GetLibReferences">
-      <Output ItemName="LibReference" TaskParameter="TargetOutputs" /> 
-    </MSBuild>
-    <ItemGroup>
-      <Reference Include="@(LibReference)" />
-      <Content Include="@(LibReference)" PackagePath="lib/$(TargetFramework)" Pack="true" />
-    </ItemGroup>
-  </Target>
   <ItemGroup>
     <PackageReference Include="IgnoresAccessChecksToGenerator" PrivateAssets="All" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
@@ -25,7 +13,5 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
     <PackageReference Include="System.Reflection.Metadata" />
     <PackageReference Include="System.Composition" />
-    <PackageReference Include="System.Linq.Async" />
-    <PackageReference Include="System.Reflection.MetadataLoadContext" />
   </ItemGroup>
 </Project>

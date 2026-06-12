@@ -34,10 +34,8 @@
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageVersion Include="NuGet.Commands" Version="$(NuGetVersion)" />
     <PackageVersion Include="NuGet.Versioning" Version="$(NuGetVersion)" />
-    <PackageVersion Include="System.Linq.Async" Version="6.0.1" />
     <PackageVersion Include="System.Reactive.Core" Version="$(RxVersion)" />
     <PackageVersion Include="System.Reactive.Linq" Version="$(RxVersion)" />
-    <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="$(DotnetVersion)" />
     <PackageVersion Include="System.Reflection.Metadata" Version="$(DotnetVersion)" />
     <PackageVersion Include="System.Composition" Version="$(DotnetVersion)" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.4.5" />
