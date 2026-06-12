@@ -4,21 +4,28 @@ using Microsoft.CodeAnalysis.CodeActions;
 
 namespace RoslynPad.Roslyn.CodeFixes
 {
+    /// <summary>
+    /// A single code fix (a <see cref="CodeAction"/> plus the diagnostics it addresses).
+    /// Re-authored as a plain data holder on public Roslyn types for 4.4 (the 1.2.0-icore fork
+    /// wrapped Roslyn's internal CodeFix). Member surface is unchanged so iCIS App.xaml templates and
+    /// WebApiContextActionProvider keep binding to Action / Fixes / Provider.
+    /// </summary>
     public sealed class CodeFix
     {
-        private readonly Microsoft.CodeAnalysis.CodeFixes.CodeFix _inner;
+        public Project Project { get; }
 
-        public Project Project => _inner.Project;
+        public CodeAction Action { get; }
 
-        public CodeAction Action => _inner.Action;
+        public ImmutableArray<Diagnostic> Diagnostics { get; }
 
-        public ImmutableArray<Diagnostic> Diagnostics => _inner.Diagnostics;
+        public Diagnostic PrimaryDiagnostic { get; }
 
-        public Diagnostic PrimaryDiagnostic => _inner.PrimaryDiagnostic;
-
-        internal CodeFix(Microsoft.CodeAnalysis.CodeFixes.CodeFix inner)
+        internal CodeFix(Project project, CodeAction action, ImmutableArray<Diagnostic> diagnostics, Diagnostic primaryDiagnostic)
         {
-            _inner = inner;
+            Project = project;
+            Action = action;
+            Diagnostics = diagnostics;
+            PrimaryDiagnostic = primaryDiagnostic;
         }
     }
 }

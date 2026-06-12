@@ -244,10 +244,10 @@ namespace RoslynPad.Roslyn.Diagnostics
                     await Task.Delay(AnalyzerExtraDebounceMs, ct).ConfigureAwait(false);
                     var analyzerDiagnostics = await ComputeAnalyzerDiagnosticsAsync(document, model, ct)
                         .ConfigureAwait(false);
-                    if (!analyzerDiagnostics.IsDefaultOrEmpty)
-                    {
-                        RaiseCreated(documentId, projectId, solution, PassKind.Analyzers, analyzerDiagnostics);
-                    }
+                    // Cache for CodeFixService (analyzer-driven quick fixes) and always raise - an empty
+                    // result must still clear prior analyzer markers/error-list entries (replace-by-id).
+                    DiagnosticsCache.UpdateAnalyzers(documentId, analyzerDiagnostics);
+                    RaiseCreated(documentId, projectId, solution, PassKind.Analyzers, analyzerDiagnostics);
                 }
             }
             catch (OperationCanceledException)
@@ -309,6 +309,8 @@ namespace RoslynPad.Roslyn.Diagnostics
 
         private void RaiseRemoved(DocumentId documentId)
         {
+            DiagnosticsCache.Clear(documentId);
+
             foreach (PassKind kind in new[] { PassKind.Syntax, PassKind.Semantic, PassKind.Analyzers })
             {
                 var args = new DiagnosticsUpdatedArgs(new UpdateArgsId(documentId, kind), _workspace, null,

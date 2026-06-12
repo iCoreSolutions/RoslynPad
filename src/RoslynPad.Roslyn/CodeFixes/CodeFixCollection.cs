@@ -1,23 +1,25 @@
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.Text;
 
 namespace RoslynPad.Roslyn.CodeFixes
 {
+    /// <summary>
+    /// The fixes contributed by a single <c>CodeFixProvider</c> for a span. Plain data holder on
+    /// public types (the 1.2.0-icore fork wrapped Roslyn's internal CodeFixCollection).
+    /// </summary>
     public sealed class CodeFixCollection
     {
-        private readonly Microsoft.CodeAnalysis.CodeFixes.CodeFixCollection _inner;
+        public object Provider { get; }
 
-        public object Provider => _inner.Provider;
-
-        public TextSpan TextSpan => _inner.TextSpan;
+        public TextSpan TextSpan { get; }
 
         public ImmutableArray<CodeFix> Fixes { get; }
 
-        internal CodeFixCollection(Microsoft.CodeAnalysis.CodeFixes.CodeFixCollection inner)
+        internal CodeFixCollection(object provider, TextSpan textSpan, ImmutableArray<CodeFix> fixes)
         {
-            _inner = inner;
-            Fixes = inner.Fixes.Select(x => new CodeFix(x)).ToImmutableArray();
+            Provider = provider;
+            TextSpan = textSpan;
+            Fixes = fixes;
         }
     }
 }
