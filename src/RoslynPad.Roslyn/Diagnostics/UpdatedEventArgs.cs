@@ -13,12 +13,12 @@ namespace RoslynPad.Roslyn.Diagnostics
 
         public DocumentId? DocumentId { get; }
 
-        internal UpdatedEventArgs(Microsoft.CodeAnalysis.Common.UpdatedEventArgs inner)
+        public UpdatedEventArgs(object id, Workspace workspace, ProjectId? projectId, DocumentId? documentId)
         {
-            Id = inner.Id;
-            Workspace = inner.Workspace;
-            ProjectId = inner.ProjectId;
-            DocumentId = inner.DocumentId;
+            Id = id;
+            Workspace = workspace;
+            ProjectId = projectId;
+            DocumentId = documentId;
         }
     }
 }

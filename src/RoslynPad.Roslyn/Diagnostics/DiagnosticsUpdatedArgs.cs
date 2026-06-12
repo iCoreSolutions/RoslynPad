@@ -1,28 +1,24 @@
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 
 namespace RoslynPad.Roslyn.Diagnostics
 {
     public class DiagnosticsUpdatedArgs : UpdatedEventArgs
     {
-        private readonly Microsoft.CodeAnalysis.Diagnostics.DiagnosticsUpdatedArgs _inner;
-
         public DiagnosticsUpdatedKind Kind { get; }
         public Solution? Solution { get; }
-        public ImmutableArray<DiagnosticData> Diagnostics { get; private set; }
+        public ImmutableArray<DiagnosticData> Diagnostics { get; }
 
-        internal DiagnosticsUpdatedArgs(Microsoft.CodeAnalysis.Diagnostics.DiagnosticsUpdatedArgs inner, ImmutableArray<DiagnosticData>? diagnostics = null) : base(inner)
+        public DiagnosticsUpdatedArgs(object id, Workspace workspace, Solution? solution, ProjectId? projectId,
+            DocumentId? documentId, DiagnosticsUpdatedKind kind, ImmutableArray<DiagnosticData> diagnostics)
+            : base(id, workspace, projectId, documentId)
         {
-            _inner = inner;
-            Solution = inner.Solution;
-            Diagnostics = diagnostics ?? inner.GetAllDiagnosticsRegardlessOfPushPullSetting().Select(x => new DiagnosticData(x)).ToImmutableArray();
-            Kind = (DiagnosticsUpdatedKind)inner.Kind;
+            Solution = solution;
+            Kind = kind;
+            Diagnostics = diagnostics;
         }
 
-        public DiagnosticsUpdatedArgs WithDiagnostics(ImmutableArray<DiagnosticData> diagnostics)
-        {
-            return new DiagnosticsUpdatedArgs(_inner, diagnostics);
-        }
+        public DiagnosticsUpdatedArgs WithDiagnostics(ImmutableArray<DiagnosticData> diagnostics) =>
+            new DiagnosticsUpdatedArgs(Id, Workspace, Solution, ProjectId, DocumentId, Kind, diagnostics);
     }
 }

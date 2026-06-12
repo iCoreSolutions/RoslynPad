@@ -1,19 +1,30 @@
 using System;
-using Microsoft.CodeAnalysis;
 
 namespace RoslynPad.Roslyn
 {
+    /// <summary>
+    /// Which push-diagnostics passes a workspace should run. Plain flags now that the engine no
+    /// longer delegates to Roslyn's internal DiagnosticProvider. Existing callers that pass
+    /// <c>Semantic | Syntax</c> get full parity (the analyzer pass rides along with Semantic).
+    /// </summary>
     [Flags]
     public enum DiagnosticOptions
     {
-        /// <summary>
-        /// Include syntax errors
-        /// </summary>
-        Syntax = DiagnosticProvider.Options.Syntax,
+        None = 0,
 
         /// <summary>
-        /// Include semantic errors
+        /// Include syntax errors.
         /// </summary>
-        Semantic = DiagnosticProvider.Options.Semantic,
+        Syntax = 1,
+
+        /// <summary>
+        /// Include semantic errors (and, by default, analyzer suggestions).
+        /// </summary>
+        Semantic = 2,
+
+        /// <summary>
+        /// Explicitly include analyzer diagnostics (also implied by <see cref="Semantic"/>).
+        /// </summary>
+        Analyzers = 4,
     }
 }

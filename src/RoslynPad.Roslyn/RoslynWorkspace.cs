@@ -15,7 +15,7 @@ namespace RoslynPad.Roslyn
         public RoslynWorkspace(HostServices hostServices, string workspaceKind = WorkspaceKind.Host, RoslynHost? roslynHost = null)
             : base(hostServices, workspaceKind)
         {
-            DiagnosticProvider.Enable(this, DiagnosticProvider.Options.Semantic);
+            this.EnableDiagnostics(DiagnosticOptions.Semantic | DiagnosticOptions.Syntax);
 
             RoslynHost = roslynHost;
         }
@@ -60,7 +60,7 @@ namespace RoslynPad.Roslyn
 
             ApplyingTextChange = null;
 
-            DiagnosticProvider.Disable(this);
+            this.DisableDiagnostics();
         }
 
         protected override void ApplyDocumentTextChanged(DocumentId document, SourceText newText)
