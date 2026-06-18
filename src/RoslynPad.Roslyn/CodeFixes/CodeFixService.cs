@@ -27,13 +27,16 @@ namespace RoslynPad.Roslyn.CodeFixes
     [Export(typeof(ICodeFixService)), Shared]
     internal sealed class CodeFixService : ICodeFixService
     {
-        private readonly Lazy<ImmutableDictionary<string, ImmutableArray<CodeFixProvider>>> _providersByDiagnosticId;
+        // Static: the provider set derives from RoslynHost.DefaultCompositionAssemblies (a fixed
+        // static set), so it is identical for every CodeFixService/RoslynHost. Building it once per
+        // process avoids re-reflecting the Features assemblies on each project open.
+        private static readonly Lazy<ImmutableDictionary<string, ImmutableArray<CodeFixProvider>>> ProvidersByDiagnosticId =
+            new Lazy<ImmutableDictionary<string, ImmutableArray<CodeFixProvider>>>(
+                BuildProviderMap, LazyThreadSafetyMode.ExecutionAndPublication);
 
         [ImportingConstructor]
         public CodeFixService()
         {
-            _providersByDiagnosticId = new Lazy<ImmutableDictionary<string, ImmutableArray<CodeFixProvider>>>(
-                BuildProviderMap, LazyThreadSafetyMode.ExecutionAndPublication);
         }
 
         public async Task<IEnumerable<CodeFixCollection>> GetFixesAsync(Document document, TextSpan textSpan,
@@ -65,7 +68,7 @@ namespace RoslynPad.Roslyn.CodeFixes
                 return result;
             }
 
-            var providerMap = _providersByDiagnosticId.Value;
+            var providerMap = ProvidersByDiagnosticId.Value;
 
             // Map each contributing provider to the diagnostics (in span) it declares it can fix.
             var diagnosticsByProvider = new Dictionary<CodeFixProvider, List<Diagnostic>>();
@@ -142,6 +145,7 @@ namespace RoslynPad.Roslyn.CodeFixes
         private static ImmutableDictionary<string, ImmutableArray<CodeFixProvider>> BuildProviderMap()
         {
             var map = new Dictionary<string, List<CodeFixProvider>>();
+            var skipped = new List<string>();
 
             foreach (var assembly in RoslynHost.DefaultCompositionAssemblies)
             {
@@ -150,6 +154,8 @@ namespace RoslynPad.Roslyn.CodeFixes
                     var provider = TryCreateProvider(type);
                     if (provider == null)
                     {
+                        // No usable parameterless ctor (e.g. requires MEF-injected services).
+                        skipped.Add(type.FullName ?? type.Name);
                         continue;
                     }
 
@@ -174,6 +180,14 @@ namespace RoslynPad.Roslyn.CodeFixes
                         list.Add(provider);
                     }
                 }
+            }
+
+            if (skipped.Count > 0)
+            {
+                // Observable signal: as Roslyn moves more built-in fixers to constructor injection,
+                // this set grows and quick-fix coverage silently shrinks.
+                System.Diagnostics.Trace.WriteLine(
+                    $"RoslynPad: {skipped.Count} CodeFixProvider(s) skipped (no usable parameterless ctor): {string.Join(", ", skipped)}");
             }
 
             return map.ToImmutableDictionary(kv => kv.Key, kv => kv.Value.ToImmutableArray());

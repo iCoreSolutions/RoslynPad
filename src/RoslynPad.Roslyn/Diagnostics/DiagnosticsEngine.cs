@@ -23,7 +23,12 @@ namespace RoslynPad.Roslyn.Diagnostics
     /// </summary>
     internal sealed class DiagnosticsEngine : IDisposable
     {
+        // Wait this long after an edit before the syntax/semantic passes, so a fast typist does not
+        // trigger a re-parse on every keystroke. Tune for responsiveness vs. churn.
         private const int EditDebounceMs = 400;
+
+        // Additional delay before the (expensive, full-analyzer-set) analyzer pass, so it only runs
+        // once typing settles (~1s total); a new edit cancels it. Keep larger than EditDebounceMs.
         private const int AnalyzerExtraDebounceMs = 600;
 
         private readonly Workspace _workspace;
@@ -52,18 +57,21 @@ namespace RoslynPad.Roslyn.Diagnostics
 
         public void Dispose()
         {
-            if (_disposed)
-            {
-                return;
-            }
-
-            _disposed = true;
             _workspace.WorkspaceChanged -= OnWorkspaceChanged;
             _workspace.DocumentOpened -= OnDocumentOpened;
             _workspace.DocumentClosed -= OnDocumentClosed;
 
+            // Set _disposed and drain under the same lock that Schedule takes, so a workspace event
+            // racing teardown either observes _disposed (and bails) or has its CTS cancelled here.
             lock (_gate)
             {
+                if (_disposed)
+                {
+                    return;
+                }
+
+                _disposed = true;
+
                 foreach (var cts in _perDocument.Values)
                 {
                     cts.Cancel();
@@ -71,6 +79,15 @@ namespace RoslynPad.Roslyn.Diagnostics
                 }
 
                 _perDocument.Clear();
+
+                // Evict cached analyzer diagnostics for documents that may never see a close event
+                // (e.g. the workspace is disposed with documents still open) to avoid leaking them
+                // (and the Compilation/SemanticModel graphs they retain) for the process lifetime.
+                foreach (var documentId in _openDocuments)
+                {
+                    DiagnosticsCache.Clear(documentId);
+                }
+
                 _openDocuments.Clear();
             }
         }
@@ -155,12 +172,6 @@ namespace RoslynPad.Roslyn.Diagnostics
 
         private void Schedule(DocumentId documentId)
         {
-            if (_disposed)
-            {
-                return;
-            }
-
-            CancellationTokenSource cts;
             lock (_gate)
             {
                 if (_disposed)
@@ -174,12 +185,16 @@ namespace RoslynPad.Roslyn.Diagnostics
                     existing.Dispose();
                 }
 
-                cts = new CancellationTokenSource();
+                var cts = new CancellationTokenSource();
                 _perDocument[documentId] = cts;
-            }
 
-            var token = cts.Token;
-            _ = Task.Run(() => AnalyzeAsync(documentId, token), token);
+                // Capture the token and queue the work while still holding the lock, so Dispose
+                // (which disposes _perDocument's CTSs under the same lock) cannot dispose this CTS
+                // before we read its token. CancellationToken.None is the scheduler token;
+                // cooperative cancellation flows through the captured body token.
+                var token = cts.Token;
+                _ = Task.Run(() => AnalyzeAsync(documentId, token), CancellationToken.None);
+            }
         }
 
         private void CancelPending(DocumentId documentId)
@@ -254,10 +269,13 @@ namespace RoslynPad.Roslyn.Diagnostics
             {
                 // Superseded by a newer edit (or disposed) - drop silently.
             }
-            catch (Exception)
+            catch (Exception ex) when (!(ex is OutOfMemoryException))
             {
                 // Diagnostics are best-effort editor adornments; never bring down the host on a
-                // transient analysis failure (e.g. a project mid-reload).
+                // transient analysis failure (e.g. a project mid-reload). Trace so the failure is
+                // observable when debugging instead of silently producing no diagnostics.
+                System.Diagnostics.Trace.WriteLine(
+                    $"RoslynPad: diagnostics analysis failed for document {documentId}: {ex}");
             }
         }
 
@@ -267,6 +285,11 @@ namespace RoslynPad.Roslyn.Diagnostics
             var project = document.Project;
             var analyzers = project.AnalyzerReferences
                 .SelectMany(r => r.GetAnalyzers(LanguageNames.CSharp))
+                // Exclude the compiler's own DiagnosticAnalyzer: its CSxxxx diagnostics are already
+                // produced by the syntax/semantic passes, and re-reporting them here (under the
+                // Analyzers pass id) would duplicate every compiler error/warning in the editor and
+                // error list. Keep only genuine IDE/style analyzers.
+                .Where(a => !IsCompilerDiagnosticAnalyzer(a))
                 .ToImmutableArray();
             if (analyzers.IsDefaultOrEmpty)
             {
@@ -281,7 +304,8 @@ namespace RoslynPad.Roslyn.Diagnostics
 
             var options = new CompilationWithAnalyzersOptions(
                 project.AnalyzerOptions,
-                onAnalyzerException: static (_, _, _) => { },
+                onAnalyzerException: static (ex, analyzer, _) => System.Diagnostics.Trace.WriteLine(
+                    $"RoslynPad: analyzer '{analyzer}' threw during analysis: {ex}"),
                 concurrentAnalysis: true,
                 logAnalyzerExecutionTime: false);
             var withAnalyzers = compilation.WithAnalyzers(analyzers, options);
@@ -294,6 +318,16 @@ namespace RoslynPad.Roslyn.Diagnostics
                 .GetAnalyzerSemanticDiagnosticsAsync(model, null, ct).ConfigureAwait(false);
 
             return syntaxDiagnostics.AddRange(semanticDiagnostics);
+        }
+
+        private static bool IsCompilerDiagnosticAnalyzer(DiagnosticAnalyzer analyzer)
+        {
+            // The compiler's own DiagnosticAnalyzer (e.g. CSharpCompilerDiagnosticAnalyzer, pulled in
+            // because the compiler assemblies are registered as analyzer references) re-surfaces the
+            // CSxxxx compiler diagnostics through the analyzer pipeline. Those are already produced by
+            // the syntax/semantic passes; including it here would double every compiler error/warning.
+            var typeName = analyzer.GetType().FullName ?? analyzer.GetType().Name;
+            return typeName.EndsWith("CompilerDiagnosticAnalyzer", StringComparison.Ordinal);
         }
 
         private void RaiseCreated(DocumentId documentId, ProjectId projectId, Solution solution, PassKind kind,
