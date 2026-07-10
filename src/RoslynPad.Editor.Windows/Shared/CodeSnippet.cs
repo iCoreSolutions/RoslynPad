@@ -252,8 +252,9 @@ internal sealed partial class CodeSnippet(string name, string description, strin
         }
     }
 
-    [GeneratedRegex(@"\$\{([^\}]*)\}", RegexOptions.Compiled | RegexOptions.CultureInvariant)]
-    private static partial Regex Pattern();
-    [GeneratedRegex(@"^([a-zA-Z]+)\(([^\)]*)\)$", RegexOptions.CultureInvariant)]
-    private static partial Regex FunctionPattern();
+    // iCore fork: net48 has no [GeneratedRegex]. The s_pattern/s_functionPattern fields above
+    // cache these, so each is constructed once.
+    private static Regex Pattern() => new(@"\$\{([^\}]*)\}", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+    private static Regex FunctionPattern() => new(@"^([a-zA-Z]+)\(([^\)]*)\)$", RegexOptions.CultureInvariant);
 }

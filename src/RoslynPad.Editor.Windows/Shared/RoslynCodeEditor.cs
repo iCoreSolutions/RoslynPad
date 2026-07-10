@@ -15,7 +15,8 @@ namespace RoslynPad.Editor;
 
 public class RoslynCodeEditor : CodeTextEditor
 {
-    private static readonly SearchValues<char> s_formattingTriggerChars = SearchValues.Create(";{}#nte:)");
+    // iCore fork: net48 has no SearchValues; a plain string lookup is equivalent here.
+    private const string FormattingTriggerChars = ";{}#nte:)";
     private readonly TextMarkerService _textMarkerService;
     private BraceMatcherHighlightRenderer? _braceMatcherHighlighter;
     private ContextActionsRenderer? _contextActionsRenderer;
@@ -378,7 +379,7 @@ public class RoslynCodeEditor : CodeTextEditor
 
         var caretOffset = CaretOffset;
         var typedChar = Document.GetCharAt(caretOffset - 1);
-        if (!s_formattingTriggerChars.Contains(typedChar))
+        if (FormattingTriggerChars.IndexOf(typedChar) < 0)
         {
             return;
         }

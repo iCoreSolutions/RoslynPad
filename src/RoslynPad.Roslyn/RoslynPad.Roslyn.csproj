@@ -5,29 +5,19 @@
     <IsPackable>true</IsPackable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="../RestoreHelper/RestoreHelper.csproj" Targets="GetLibReferences" PrivateAssets="All" />
-  </ItemGroup>
-  <Target Name="GetLibReferences" AfterTargets="ResolveFrameworkReferences">
-    <MSBuild Projects="@(ProjectReference)" Targets="GetLibReferences">
-      <Output ItemName="LibReference" TaskParameter="TargetOutputs" /> 
-    </MSBuild>
-    <ItemGroup>
-      <Reference Include="@(LibReference)" />
-      <Content Include="@(LibReference)" PackagePath="lib/$(TargetFramework)" Pack="true" />
-    </ItemGroup>
-  </Target>
+  <!-- iCore fork: RestoreHelper + GetLibReferences removed. They harvested
+       Microsoft.CodeAnalysis.LanguageServer.Protocol, which is netcoreapp-only and cannot load
+       on .NET Framework 4.8. The only consumer (Classification/SemanticTokensSchema.cs) is
+       removed with it. -->
   <ItemGroup>
     <PackageReference Include="IgnoresAccessChecksToGenerator" PrivateAssets="All" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
-    <PackageReference Include="Microsoft.VisualStudio.Threading" />
     <PackageReference Include="System.Reflection.Metadata" />
     <PackageReference Include="System.Composition" />
     <PackageReference Include="System.Linq.AsyncEnumerable" />
-    <PackageReference Include="System.Reflection.MetadataLoadContext" />
   </ItemGroup>
   <ItemGroup>
     <IgnoresAccessChecksTo Include="Microsoft.CodeAnalysis.CSharp" />
@@ -38,6 +28,5 @@
     <IgnoresAccessChecksTo Include="Microsoft.CodeAnalysis.CSharp.Scripting" />
     <IgnoresAccessChecksTo Include="Microsoft.CodeAnalysis.Workspaces" />
     <IgnoresAccessChecksTo Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
-    <IgnoresAccessChecksTo Include="Microsoft.CodeAnalysis.LanguageServer.Protocol" />
   </ItemGroup>
 </Project>

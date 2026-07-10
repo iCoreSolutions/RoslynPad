@@ -34,17 +34,15 @@ public class RoslynHost : IRoslynHost
         "NullDiagnosticsRefresher"
     ];
 
+    // iCore fork: dropped Concat(GetDiagnosticCompositionTypes()) — at Roslyn 5.6 the
+    // diagnostics/code-fix services live in Microsoft.CodeAnalysis.Features, which is already in
+    // DefaultCompositionAssemblies, so the extra metadata scan was redundant (and its
+    // implementation required APIs unavailable on .NET Framework 4.8).
     internal static readonly ImmutableArray<Type> DefaultCompositionTypes =
         DefaultCompositionAssemblies.SelectMany(t => t.DefinedTypes).Select(t => t.AsType())
-        .Concat(GetDiagnosticCompositionTypes())
         .Where(t => !ExcludedTypeNames.Contains(t.Name))
         .Distinct()
         .ToImmutableArray();
-
-    private static IEnumerable<Type> GetDiagnosticCompositionTypes() => MetadataUtil.LoadTypesByNamespaces(
-        typeof(Microsoft.CodeAnalysis.CodeFixes.ICodeFixService).Assembly,
-        "Microsoft.CodeAnalysis.Diagnostics",
-        "Microsoft.CodeAnalysis.CodeFixes");
 
     private readonly ConcurrentDictionary<DocumentId, RoslynWorkspace> _workspaces;
     private readonly IDocumentationProviderService _documentationProviderService;

@@ -4,10 +4,11 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <PropertyGroup>
-    <DotNetExtensionsVersion>10.0.9</DotNetExtensionsVersion>
-    <RoslynVersion>5.3.0</RoslynVersion>
+    <!-- iCore fork: 10.0.8 aligns System.Composition and friends with the iCIS flat-bin wave. -->
+    <DotNetExtensionsVersion>10.0.8</DotNetExtensionsVersion>
+    <RoslynVersion>5.6.0</RoslynVersion>
     <!-- https://dev.azure.com/dnceng/public/_artifacts/feed/dotnet-tools/NuGet/Microsoft.CodeAnalysis.LanguageServer.Protocol/ -->
-    <RoslynPrivateVersion>5.3.0-2.26078.5</RoslynPrivateVersion>
+    <RoslynPrivateVersion>5.6.0-2.26263.10</RoslynPrivateVersion>
     <AvaloniaVersion>12.0.5</AvaloniaVersion>
     <NuGetVersion>7.6.0</NuGetVersion>
     <MessagePackVersion>3.1.7</MessagePackVersion>
@@ -44,6 +45,7 @@
     <PackageVersion Include="Mono.Cecil" Version="0.11.6" />
     <PackageVersion Include="Nerdbank.Streams" Version="2.13.16" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageVersion Include="PolySharp" Version="1.16.0" />
     <PackageVersion Include="NuGet.Commands" Version="$(NuGetVersion)" />
     <PackageVersion Include="NuGet.Versioning" Version="$(NuGetVersion)" />
     <PackageVersion Include="System.Linq.AsyncEnumerable" Version="$(DotNetExtensionsVersion)" />

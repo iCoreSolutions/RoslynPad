@@ -2,4 +2,5 @@
 
 namespace RoslynPad.Roslyn.Diagnostics;
 
-public record DiagnosticsChangedArgs(DocumentId DocumentId, IReadOnlySet<DiagnosticData> AddedDiagnostics, IReadOnlySet<DiagnosticData> RemovedDiagnostics);
+// iCore fork: IReadOnlyCollection instead of IReadOnlySet (net5+) — not available on net48.
+public record DiagnosticsChangedArgs(DocumentId DocumentId, IReadOnlyCollection<DiagnosticData> AddedDiagnostics, IReadOnlyCollection<DiagnosticData> RemovedDiagnostics);

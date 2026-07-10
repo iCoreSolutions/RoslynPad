@@ -78,8 +78,10 @@ public static partial class FileLevelDirectiveHelpers
     }
 
 
-    [GeneratedRegex("""\s+""")]
-    public static partial Regex Whitespace();
+    // iCore fork: netstandard2.0 has no [GeneratedRegex]; use a cached instance instead.
+    private static readonly Regex s_whitespace = new(@"\s+", RegexOptions.Compiled);
+
+    public static Regex Whitespace() => s_whitespace;
 }
 
 public readonly record struct FileLevelDirective(SyntaxTrivia Trivia, TextSpan Span, string DirectiveKind, string DirectiveText);

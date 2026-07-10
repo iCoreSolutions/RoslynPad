@@ -22,7 +22,8 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CodeAnalysis.Features">
-      <HintPath>..\RoslynPad.Roslyn\obj\Debug\net8.0\IgnoresAccessChecksToGenerator\Microsoft.CodeAnalysis.Features.dll</HintPath>
+      <!-- iCore fork: track the netstandard2.0 retarget and the active configuration. -->
+      <HintPath>..\RoslynPad.Roslyn\obj\$(Configuration)\netstandard2.0\IgnoresAccessChecksToGenerator\Microsoft.CodeAnalysis.Features.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>

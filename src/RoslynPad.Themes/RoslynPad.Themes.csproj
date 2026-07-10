@@ -3,6 +3,10 @@
     <TargetFramework>$(LtsTargetFramework)</TargetFramework>
     <IsPackable>true</IsPackable>
   </PropertyGroup>
+  <!-- iCore fork: System.Text.Json is not inbox on netstandard2.0. -->
+  <ItemGroup>
+    <PackageReference Include="System.Text.Json" />
+  </ItemGroup>
   <ItemGroup>
     <None Remove="Themes\*.json" />
   </ItemGroup>

@@ -21,7 +21,8 @@ internal readonly struct Color
     public static Color White => new(new RGBA(255, 255, 255, 1.0));
     public static Color Black => new(new RGBA(0, 0, 0, 1.0));
 
-    private static int ParseHex(string color, Range range) => int.Parse(color.AsSpan(range), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+    // iCore fork: netstandard2.0 has neither AsSpan(Range) nor span-based int.Parse.
+    private static int ParseHex(string color, Range range) => int.Parse(color.Substring(range.Start.Value, range.End.Value - range.Start.Value), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
 
     public override string ToString() => ToRGBA(_hsla).ToString();
 
