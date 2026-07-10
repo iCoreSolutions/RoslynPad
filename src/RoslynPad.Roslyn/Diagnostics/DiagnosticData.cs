@@ -30,6 +30,9 @@ public sealed class DiagnosticData : IEquatable<DiagnosticData>
     public ProjectId? ProjectId => _inner.ProjectId;
     public DocumentId? DocumentId => _inner.DocumentId;
 
+    // iCore fork: 4.4.0-icore compat surface for iCIS's error list (line/column/file path).
+    public DiagnosticDataLocation DataLocation => new(_inner.DataLocation, _inner.DocumentId);
+
     public TextSpan? GetTextSpan(SourceText sourceText) => _inner.DataLocation.MappedFileSpan.GetClampedTextSpan(sourceText);
     
     public bool Equals(DiagnosticData? other) => _inner.Equals(other?._inner);
